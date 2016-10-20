@@ -60,7 +60,7 @@ app.get('/api/coretable', function (req, res) {
         res.send(newItem);
     })
     .put('/api/coretable', function (req, res, next) {
-        console.log(req, res);
+        // console.log(req, res);
         var updateItem = req.body;
 
         var existedOne = _.find(dataSource, function (item) {
@@ -68,6 +68,7 @@ app.get('/api/coretable', function (req, res) {
         });
         if(!existedOne){
             next("not found the item need be update!");
+             return;
         }
         _.assign(existedOne, updateItem);
         // existedOne=updateItem;
@@ -75,19 +76,27 @@ app.get('/api/coretable', function (req, res) {
         res.send(existedOne);
     })
     .delete('/api/coretable', function (req, res, next) {
-        console.log(req, res);
-        var deleteItem = req.body;
+        // console.log(req, res);
+        var deleteKeys = req.body.deleteKeys;
+        if(!deleteKeys||deleteKeys.length==0){
+            next("not found delete IDs");
+             return;
+        }
         var deleted=_.remove(dataSource, function (item) {
-            return item.NO == deleteItem.NO;
+            return _.some(deleteKeys, function(key){
+                return key==item.NO;
+            });
         });
-        if(!deleted){
+        console.log("delete: ", deleted);
+        if(!deleted||deleted.length==0){
             next("delete failed!");
+            return;
         }
         res.sendStatus(200);
     });
 
     app.use(function (err, req, res, next) {
-        console.error(err.stack);
+        console.error(err);
         res.status(500).send('Something broke!');
     });
 
